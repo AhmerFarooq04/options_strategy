@@ -2,6 +2,5 @@ streamlit
 yfinance
 pandas 
 matplotlib
-math
 numpy 
 seaborn 
