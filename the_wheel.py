@@ -2,7 +2,6 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
-import math
 import numpy as np
 import seaborn as sns
 
@@ -73,8 +72,8 @@ if data is not None:
    
     p_upper_value = monthly_df["monthly_percent_change"].quantile(quantile_upper)
     p_lower_value = monthly_df["monthly_percent_change"].quantile(quantile_lower)
-    p_upper = math.ceil(p_upper_value)
-    p_lower = math.floor(p_lower_value)
+    p_upper =  (p_upper_value // 1) + (p_upper_value % 1 >= 0.5)
+    p_lower =  p_lower_value // 1
 
   
     exp_call_strike = last_price + ((last_price * p_upper) / 100)
