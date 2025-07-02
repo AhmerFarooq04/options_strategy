@@ -11,7 +11,7 @@ st.markdown(
     """
     ## The Wheel Strategy
 
-    The Wheel Strategy involves **selling cash‑secured puts** and, if assigned, **selling covered calls** on the shares you now own.  
+    The Wheel Strategy involves **selling cash‑secured puts** and, if assigned, **selling covered calls** on the shares you now own. 
     It’s popular for generating option‑premium income in sideways‑to‑bullish markets.
 
     **Cycle:**
@@ -23,9 +23,9 @@ st.markdown(
     ---
     
     ### Risk Tolerance Explanation:
-    The risk slider adjusts how far from the current price the strategy selects option strikes based on historical monthly price movement quantiles.  
-    - Lower risk: Strikes farther away from current price, more conservative but lower premium income.  
-    - Higher risk: Strikes closer to current price, higher premium but greater chance of assignment or loss.  
+    The risk slider adjusts how far from the current price the strategy selects option strikes based on historical monthly price movement quantiles. 
+    - Lower risk: Strikes farther away from current price, more conservative but lower premium income. 
+    - Higher risk: Strikes closer to current price, higher premium but greater chance of assignment or loss. 
     """
 )
 
