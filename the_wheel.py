@@ -61,7 +61,7 @@ close_prices = load_price_history(stock_ticker)
 if close_prices is None:
     st.stop()
 
-last_price = float(close_prices.iloc[-1])
+last_price = close_prices.iloc[-1].item() 
 
 monthly = close_prices.resample("ME").last()
 
@@ -182,7 +182,7 @@ if expiry_date is None:
     st.error("No suitable expiry found.")
     st.stop()
 
-st.info(f"Using expiry **{expiry_date}**  (≥ first business day next month)")
+st.info(f"Using expiry **{expiry_date}**  (≥ first business day next month)")
 
 option_chain = ticker_obj.option_chain(expiry_date)
 calls_df, puts_df = option_chain.calls, option_chain.puts
@@ -206,8 +206,82 @@ put_premium = float(put_option["lastPrice"].iloc[0])
 total_premium = 100 * (call_premium + put_premium)
 required_capital = 100 * put_strike
 monthly_return_pct = total_premium / required_capital * 100
-annualized_return = monthly_return_pct * 12  # annualized % return (simple)
+annualized_return = monthly_return_pct * 12  
 
+# ── Monte Carlo Simulation (200 paths) ──────────────────────────────────
+run_mc = st.toggle(
+    "Run 1‑Month Monte Carlo Simulation (200 paths)",
+    help="Simulate 200 possible price paths to expiry and see assignment / call‑away probabilities",
+)
+
+if run_mc:
+    import numpy as np
+
+    # simulation parameters
+    n_paths   = 200
+    n_steps   = 21                        # ≈ trading days in a month
+    daily_ret = close_prices.pct_change().dropna()
+    mu_d      = daily_ret.mean().iloc[0]
+    sigma_d   = daily_ret.std().iloc[0]
+    dt        = 1.0                     
+
+    # generate GBM paths
+    paths = np.zeros((n_steps + 1, n_paths))
+    paths[0] = last_price
+    rand_mat = np.random.normal(size=(n_steps, n_paths))
+
+    for t in range(1, n_steps + 1):
+        paths[t] = paths[t-1] * (1 + mu_d + sigma_d * rand_mat[t-1] * np.sqrt(dt))
+
+# ------------------- plot all paths once --------------------------------
+    mc_fig = go.Figure()
+
+    final_prices   = paths[-1]
+    assigned_mask  = final_prices < put_strike
+    called_mask    = final_prices > call_strike
+    kept_mask      = ~(assigned_mask | called_mask)
+
+    def add_paths(mask, color, name):
+        first = True
+        for i in np.where(mask)[0]:
+            mc_fig.add_trace(
+                go.Scatter(
+                    x=list(range(n_steps + 1)),
+                    y=paths[:, i],
+                    mode="lines",
+                    line=dict(color=color, width=1),
+                    showlegend=first,     # only first path shows legend entry
+                    name=name,
+                )
+            )
+            first = False                # suppress legend after first trace
+
+    add_paths(assigned_mask, "rgba(255,255,0,0.7)",  "Assigned")
+    add_paths(called_mask,   "rgba(255,  0,255,0.6)", "Called Away")
+    add_paths(kept_mask,     "rgba( 57,255, 20,0.25)","Kept Premium")
+
+    mc_fig.update_layout(
+        title="Monte Carlo Price Paths (1‑Month, 200 sims)",
+        paper_bgcolor="#0e1117",
+        plot_bgcolor="#0e1117",
+        font=dict(color="#FFFFFF"),
+        legend=dict(bgcolor="rgba(0,0,0,0)", borderwidth=0),
+        xaxis=dict(title="Trading Days → Expiry", gridcolor="#444444"),
+        yaxis=dict(title="Simulated Price ($)",   gridcolor="#444444"),
+     margin=dict(t=60, b=40, l=0, r=0),
+    )
+    st.plotly_chart(mc_fig, use_container_width=True)
+
+    # ------------------- quick outcome stats -----------------------------
+    final_prices  = paths[-1]
+    prob_assigned = (final_prices < put_strike).mean() * 100
+    prob_called   = (final_prices > call_strike).mean() * 100
+
+    st.subheader("Monte Carlo Outcomes")
+    c1, c2 = st.columns(2)
+    c1.metric("P(Assigned)",    f"{prob_assigned:4.1f}%")
+    c2.metric("P(Called Away)", f"{prob_called:4.1f}%")
+    
 st.subheader("Strategy Metrics")
 col1, col2, col3 = st.columns(3)
 col1.metric("Capital Required", f"${required_capital:,.0f}")
