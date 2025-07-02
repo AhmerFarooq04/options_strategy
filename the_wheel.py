@@ -233,7 +233,7 @@ if run_mc:
     for t in range(1, n_steps + 1):
         paths[t] = paths[t-1] * (1 + mu_d + sigma_d * rand_mat[t-1] * np.sqrt(dt))
 
-# ------------------- plot all paths once --------------------------------
+# ------------------- plot all paths once -------------------------
     mc_fig = go.Figure()
 
     final_prices   = paths[-1]
