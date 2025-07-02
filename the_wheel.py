@@ -277,7 +277,7 @@ if run_mc:
     prob_assigned = (final_prices < put_strike).mean() * 100
     prob_called   = (final_prices > call_strike).mean() * 100
 
-    st.subheader("Monte Carlo Outcomes")
+    st.subheader("Monte Carlo Outcomes")
     c1, c2 = st.columns(2)
     c1.metric("P(Assigned)",    f"{prob_assigned:4.1f}%")
     c2.metric("P(Called Away)", f"{prob_called:4.1f}%")
