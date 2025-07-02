@@ -219,7 +219,7 @@ if run_mc:
 
     # simulation parameters
     n_paths   = 200
-    n_steps   = 21                        # ≈ trading days in a month
+    n_steps   = 21                     
     daily_ret = close_prices.pct_change().dropna()
     mu_d      = daily_ret.mean().iloc[0]
     sigma_d   = daily_ret.std().iloc[0]
@@ -250,11 +250,11 @@ if run_mc:
                     y=paths[:, i],
                     mode="lines",
                     line=dict(color=color, width=1),
-                    showlegend=first,     # only first path shows legend entry
+                    showlegend=first,   
                     name=name,
                 )
             )
-            first = False                # suppress legend after first trace
+            first = False            
 
     add_paths(assigned_mask, "rgba(255,255,0,0.7)",  "Assigned")
     add_paths(called_mask,   "rgba(255,  0,255,0.6)", "Called Away")
